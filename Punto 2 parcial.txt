@@ -1,0 +1,77 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <limits>
+
+using namespace std;
+
+struct Patient {
+    string id;
+    string highestSystolic;
+    string lowestDiastolic;
+};
+
+vector<Patient> processTextFile(const string& filename) {
+    vector<Patient> patients;
+
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cerr << "Error opening file." << endl;
+        return patients;
+    }
+
+    string line;
+    while (getline(file, line)) {
+        Patient patient;
+        stringstream ss(line);
+        getline(ss, patient.id, ';');
+        string measure;
+        int maxSystolic = numeric_limits<int>::min();
+        int minDiastolic = numeric_limits<int>::max();
+        while (getline(ss, measure, ',')) {
+            int systolic = stoi(measure.substr(0, measure.find('-')));
+            int diastolic = stoi(measure.substr(measure.find('-') + 1));
+            if (systolic > maxSystolic) {
+                maxSystolic = systolic;
+                patient.highestSystolic = measure;
+            }
+            if (diastolic < minDiastolic) {
+                minDiastolic = diastolic;
+                patient.lowestDiastolic = measure;
+            }
+        }
+        patients.push_back(patient);
+    }
+
+    file.close();
+    return patients;
+}
+
+void saveToBinaryFile(const vector<Patient>& patients, const string& filename) {
+    ofstream file(filename, ios::binary);
+    if (!file.is_open()) {
+        cerr << "Error opening file." << endl;
+        return;
+    }
+
+    for (const auto& patient : patients) {
+        string warning = "", followUp = "";
+        int highestSystolic = stoi(patient.highestSystolic.substr(0, patient.highestSystolic.find('-')));
+        int lowestDiastolic = stoi(patient.lowestDiastolic.substr(0, patient.lowestDiastolic.find('-')));
+        if (highestSystolic > 140 || lowestDiastolic > 95) {
+            warning = "ADVERTENCIA";
+        } else if ((highestSystolic >= 130 && highestSystolic <= 140) || (lowestDiastolic >= 90 && lowestDiastolic <= 95)) {
+            followUp = "SEGUIMIENTO";
+        }
+        file << patient.id << " " << patient.highestSystolic << " " << patient.lowestDiastolic << " " << warning << " " << followUp << endl;
+    }
+
+    file.close();
+}
+
+int main() {
+    vector<Patient> patients = processTextFile("medidas.txt");
+    saveToBinaryFile(patients, "Pacientes.dat");
+    return 0;
+}
