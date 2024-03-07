@@ -1,0 +1,35 @@
+#include <iostream>
+using namespace std;
+
+void agregarValor(int*& arreglo, int& longitud, int valor){
+    int* nuevoArreglo = new int[longitud + 1];
+    for (int i = 0; i < longitud; i++) {
+        nuevoArreglo[i] = arreglo[i];
+    }
+    nuevoArreglo[longitud] = valor;
+    valor = longitud + 1;
+    
+    delete[] arreglo;
+    arreglo = nuevoArreglo;
+}
+int main(){
+    
+    int* miArreglo = nullptr;
+    int longitud = 0;
+
+    // Agregar valores al arreglo dinámico
+    agregarValor(miArreglo, longitud, 10);
+    agregarValor(miArreglo, longitud, 20);
+    agregarValor(miArreglo, longitud, 30);
+
+    // Imprimir los elementos del arreglo
+    for (int i = 0; i < longitud; ++i) {
+        cout << miArreglo[i] << " ";
+    }
+
+    // Liberar la memoria asignada al arreglo dinámico
+    delete[] miArreglo;
+
+    return 0;
+    
+}
